@@ -46,6 +46,11 @@ jobs:
           message_id: ${{ steps.slack.outputs.message_id }}
           status: STARTING
           color: warning
+      - name: Sleep for 10s
+        uses: juliangruber/sleep-action@v1
+        with:
+          time: 120s
+
 
       - name: Notify slack success
         if: success()
