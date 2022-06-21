@@ -70,7 +70,7 @@ services:
   # sso auth service (connects with Seneca's auth)
   sso:
     init: true
-    container_name: 'sso1'
+    container_name: 'sso12'
     environment:
       - NODE_ENV
       - SSO_PORT
@@ -107,14 +107,14 @@ services:
   # search service
   search:
     init: true
-    container_name: 'search'
+    container_name: 'searcdh'
     environment:
       - NODE_ENV
       - SEARCH_PORT
       - POSTS_URL
       - ELASTIC_MAX_RESULTS_PER_PAGE
       - ELASTIC_URL=http://elasticsearch
-      - ELASTIC_PORT=9200
+      - ELASTIC_PORT=9300
       # Satellite authentication/authorization support
       - JWT_ISSUER
       - JWT_AUDIENCE
