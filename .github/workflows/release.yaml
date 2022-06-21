@@ -16,13 +16,14 @@ jobs:
           fetch-depth: 0
 
       - name: Notify slack started
+        if: success()
         id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd"
-          status: STARTED
+          channel: "cicd"
+          status: STARTING
           color: warning
 
       - name: Build changelog
@@ -51,7 +52,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd"
+          channel: "cicd"
           message_id: ${{ steps.slack.outputs.message_id }}
           status: SUCCESS
           color: good
@@ -62,7 +63,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd"
+          channel: "cicd"
           message_id: ${{ steps.slack.outputs.message_id }}
           status: FAILED
           color: danger
