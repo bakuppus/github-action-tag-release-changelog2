@@ -70,7 +70,7 @@ services:
   # sso auth service (connects with Seneca's auth)
   sso:
     init: true
-    container_name: 'sso'
+    container_name: 'sso1'
     environment:
       - NODE_ENV
       - SSO_PORT
