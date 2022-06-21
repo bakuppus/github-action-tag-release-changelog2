@@ -1,0 +1,336 @@
+################################################################################
+# Base docker-compose.yml for Telescope services. Use the additional
+# production.yml file for production, and development.yml for development.
+################################################################################
+version: '3'
+
+services:
+  ##############################################################################
+  # Telescope Microservices
+  ##############################################################################
+
+  # status service
+  status:
+    init: true
+    container_name: 'status'
+    environment:
+      - NODE_ENV
+      - WEB_URL
+      - STATUS_PORT
+      - STATUS_URL
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - GITHUB_TOKEN
+      - JWT_SECRET
+    depends_on:
+      - traefik
+      - redis
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the status service at /v1/status
+      - 'traefik.http.routers.status.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/status`)'
+      # Specify the status service port
+      - 'traefik.http.services.status.loadbalancer.server.port=${STATUS_PORT}'
+      # Define redirect middleware for any requests to /v1/status -> /v1/status/ (trailing slash)
+      - 'traefik.http.middlewares.status_redirect.redirectregex.regex=(^.*\/[^status]+\/status$$)'
+      - 'traefik.http.middlewares.status_redirect.redirectregex.replacement=$$1/'
+      - 'traefik.http.middlewares.status_redirect.redirectregex.permanent=true'
+      # Add middleware to this route to strip the /v1/status prefix
+      - 'traefik.http.middlewares.strip_status_prefix.stripprefix.prefixes=/${API_VERSION}/status'
+      - 'traefik.http.middlewares.strip_status_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.status.middlewares=status_redirect,strip_status_prefix'
+
+  # image service
+  image:
+    init: true
+    container_name: 'image'
+    environment:
+      - NODE_ENV
+      - IMAGE_PORT
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+    depends_on:
+      - traefik
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the image service at /v1/image
+      - 'traefik.http.routers.image.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/image`)'
+      # Specify the image service port
+      - 'traefik.http.services.image.loadbalancer.server.port=${IMAGE_PORT}'
+      # Add middleware to this route to strip the /v1/image prefix
+      - 'traefik.http.middlewares.strip_image_prefix.stripprefix.prefixes=/${API_VERSION}/image'
+      - 'traefik.http.middlewares.strip_image_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.image.middlewares=strip_image_prefix'
+
+  # sso auth service (connects with Seneca's auth)
+  sso:
+    init: true
+    container_name: 'sso'
+    environment:
+      - NODE_ENV
+      - SSO_PORT
+      - SSO_LOGIN_URL
+      - SSO_LOGIN_CALLBACK_URL
+      - SLO_LOGOUT_URL
+      - SLO_LOGOUT_CALLBACK_URL
+      - SSO_IDP_PUBLIC_KEY_CERT
+      - SAML_ENTITY_ID
+      - ADMINISTRATORS
+      - ALLOWED_APP_ORIGINS
+      - JWT_EXPIRES_IN
+      # Supabase config
+      - SERVICE_ROLE_KEY
+      - SUPABASE_URL
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+    depends_on:
+      - traefik
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the auth service at /v1/auth
+      - 'traefik.http.routers.auth.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/auth`)'
+      # Specify the auth service port
+      - 'traefik.http.services.auth.loadbalancer.server.port=${SSO_PORT}'
+      # Add middleware to this route to strip the /v1/auth prefix
+      - 'traefik.http.middlewares.strip_auth_prefix.stripprefix.prefixes=/${API_VERSION}/auth'
+      - 'traefik.http.middlewares.strip_auth_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.auth.middlewares=strip_auth_prefix'
+
+  # search service
+  search:
+    init: true
+    container_name: 'search'
+    environment:
+      - NODE_ENV
+      - SEARCH_PORT
+      - POSTS_URL
+      - ELASTIC_MAX_RESULTS_PER_PAGE
+      - ELASTIC_URL=http://elasticsearch
+      - ELASTIC_PORT=9200
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+    depends_on:
+      - elasticsearch
+      - traefik
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the search service at /v1/search
+      - 'traefik.http.routers.search.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/search`)'
+      # Specify the search service port
+      - 'traefik.http.services.search.loadbalancer.server.port=${SEARCH_PORT}'
+      # Add middleware to this route to strip the /v1/search prefix
+      - 'traefik.http.middlewares.strip_search_prefix.stripprefix.prefixes=/${API_VERSION}/search'
+      - 'traefik.http.middlewares.strip_search_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.search.middlewares=strip_search_prefix'
+
+  # posts service
+  posts:
+    init: true
+    container_name: 'posts'
+    environment:
+      - NODE_ENV
+      - POSTS_PORT
+      - POSTS_URL
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+    depends_on:
+      - traefik
+      - redis
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the image service at /v1/image
+      - 'traefik.http.routers.posts.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/posts`)'
+      # Specify the posts service port
+      - 'traefik.http.services.posts.loadbalancer.server.port=${POSTS_PORT}'
+      # Add middleware to this route to strip the /v1/posts prefix
+      - 'traefik.http.middlewares.strip_posts_prefix.stripprefix.prefixes=/${API_VERSION}/posts'
+      - 'traefik.http.middlewares.strip_posts_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.posts.middlewares=strip_posts_prefix'
+
+  # feed discovery service
+  feed-discovery:
+    init: true
+    container_name: 'feed-discovery'
+    environment:
+      - NODE_ENV
+      - FEED_DISCOVERY_PORT
+      - RSS_BRIDGE_URL
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+    depends_on:
+      - traefik
+      - rss-bridge
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the feed discovery service at /v1/image
+      - 'traefik.http.routers.feed-discovery.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/feed-discovery`)'
+      # Specify the feed discovery service port
+      - 'traefik.http.services.feed-discovery.loadbalancer.server.port=${FEED_DISCOVERY_PORT}'
+      # Add middleware to this route to strip the /v1/feed-discovery prefix
+      - 'traefik.http.middlewares.strip_feed_discovery_prefix.stripprefix.prefixes=/${API_VERSION}/feed-discovery'
+      - 'traefik.http.middlewares.strip_feed_discovery_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.feed-discovery.middlewares=strip_feed_discovery_prefix'
+
+  parser:
+    init: true
+    container_name: 'parser'
+    environment:
+      - NODE_ENV
+      - PARSER_PORT
+      - ELASTIC_MAX_RESULTS_PER_PAGE
+      - ELASTIC_URL=http://elasticsearch
+      - ELASTIC_PORT=9200
+      - SERVICE_ROLE_KEY
+      - SUPABASE_URL
+      # Satellite authentication/authorization support
+      - JWT_ISSUER
+      - JWT_AUDIENCE
+      - JWT_SECRET
+      - WEB_URL
+    depends_on:
+      - traefik
+      - redis
+      - elasticsearch
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the parser service at /v1/parser
+      - 'traefik.http.routers.parser.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/parser`)'
+      # Specify the parser service port
+      - 'traefik.http.services.parser.loadbalancer.server.port=${PARSER_PORT}'
+      # Add middleware to this route to strip the /v1/parser prefix
+      - 'traefik.http.middlewares.strip_parser_prefix.stripprefix.prefixes=/${API_VERSION}/parser'
+      - 'traefik.http.middlewares.strip_parser_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.parser.middlewares=strip_parser_prefix'
+
+  # planet service
+  planet:
+    init: true
+    container_name: 'planet'
+    environment:
+      - NODE_ENV
+      - PLANET_PORT
+      - POSTS_URL
+      - SERVICE_ROLE_KEY
+      - SUPABASE_URL
+
+  dependency-discovery:
+    init: true
+    container_name: 'dependency-discovery'
+    environment:
+      - NODE_ENV
+      - DEPENDENCY_DISCOVERY_PORT
+    depends_on:
+      - traefik
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the dependency-discovery service at /v1/dependency-discovery
+      - 'traefik.http.routers.dependency-discovery.rule=PathPrefix(`/${API_VERSION}/dependency-discovery`)'
+      # Specify the dependency-discovery service port
+      - 'traefik.http.services.dependency-discovery.loadbalancer.server.port=${DEPENDENCY_DISCOVERY_PORT}'
+      # Add middleware to this route to strip the /v1/dependency-discovery prefix
+      - 'traefik.http.middlewares.strip_dependency_prefix.stripprefix.prefixes=/${API_VERSION}/dependency-discovery'
+      - 'traefik.http.middlewares.strip_dependency_prefix.stripprefix.forceSlash=true'
+      - 'traefik.http.routers.dependency-discovery.middlewares=strip_dependency_prefix'
+
+  ##############################################################################
+  # Third-Party Dependencies and Support Services
+  ##############################################################################
+
+  # nginx
+  nginx:
+    build:
+      context: ../src/web
+      dockerfile: Dockerfile
+      cache_from:
+        - docker.cdot.systems/nginx:buildcache
+      # next.js needs build-time access to a number of API URL values, forward as ARGs
+      args:
+        # Web front-end URL
+        - WEB_URL=${WEB_URL}
+        # Telescope 2.0 Microservice URLs
+        - IMAGE_URL
+        - SSO_URL
+        - POSTS_URL
+        - SEARCH_URL
+        - FEED_DISCOVERY_URL
+        - STATUS_URL
+        - GIT_COMMIT
+        - SUPABASE_URL
+        - ANON_KEY
+        - DEPENDENCY_DISCOVERY_URL
+    container_name: 'nginx'
+    environment:
+      - TELESCOPE_HOST
+      - API_HOST
+      - PORTAINER_HOST
+      - SUPABASE_HOST
+    restart: unless-stopped
+    depends_on:
+      - traefik
+
+  # API Gateway
+  traefik:
+    image: traefik:v2.6.6
+    container_name: 'traefik'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - 'traefik.enable=true'
+
+  # Redis
+  redis:
+    image: redis:latest
+    container_name: 'redis'
+    command: ['redis-server']
+    volumes:
+      - ../redis-data:/data
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.4
+    container_name: 'elasticsearch'
+
+  rss-bridge:
+    image: rssbridge/rss-bridge:2022-01-20
+    container_name: 'rss-bridge'
+    # See RSS-Bridge docs for config files:
+    # Whitelist - https://github.com/RSS-Bridge/rss-bridge/wiki/Whitelisting
+    # Configuration - https://github.com/RSS-Bridge/rss-bridge/wiki/Custom-Configuration#timezone
+    volumes:
+      - ../config/rss-bridge:/config
+    depends_on:
+      - traefik
+    labels:
+      # Enable Traefik
+      - 'traefik.enable=true'
+      # Traefik routing for the rss-bridge service at /v1/rss-bridge
+      - 'traefik.http.routers.rss_bridge.rule=HOST(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/rss-bridge`)'
+      # Specify the RSS-Bridge service port used internally
+      - 'traefik.http.services.rss_bridge.loadbalancer.server.port=80'
+      # Define redirect middleware for any requests to /v1/rss-bridge -> /v1/rss-bridge/ (trailing slash)
+      - 'traefik.http.middlewares.rss_bridge_redirect.redirectregex.regex=(^.*\/rss-bridge$$)'
+      - 'traefik.http.middlewares.rss_bridge_redirect.redirectregex.replacement=$$1/'
+      - 'traefik.http.middlewares.rss_bridge_redirect.redirectregex.permanent=true'
+      # Define prefix stripping middleware for any requests to /v1/rss-bridge/*
+      - 'traefik.http.middlewares.rss_bridge_prefix.stripprefix.prefixes=/${API_VERSION}/rss-bridge'
+      # Add our middleware to the router
+      - 'traefik.http.routers.rss_bridge.middlewares=rss_bridge_redirect,rss_bridge_prefix'
