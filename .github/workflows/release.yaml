@@ -14,16 +14,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: Notify slack started
-        if: success()
         id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: "#cicd-notifcation"
-          status: STARTING
+          status: STARTED
           color: warning
+
       - name: Build changelog
         id: build_changelog
         uses: mikepenz/release-changelog-builder-action@main
@@ -31,6 +32,7 @@ jobs:
           configuration: 'release-changelog-builder-config.json'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create release
         id: create_release
         uses: actions/create-release@latest
@@ -53,6 +55,7 @@ jobs:
           message_id: ${{ steps.slack.outputs.message_id }}
           status: SUCCESS
           color: good
+
       - name: Notify slack fail
         if: failure()
         env:
