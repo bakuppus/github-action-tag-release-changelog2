@@ -33,7 +33,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           body: ${{steps.build_changelog.outputs.changelog}}
           draft: false
-          prerelease: false
+          prerelease: true
 
       - name: Notify slack
         if: success()
