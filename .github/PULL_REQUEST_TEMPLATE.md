@@ -1,23 +1,48 @@
 <!--
-Thank you for your pull request. Please provide a description above and
-review the checklist below.
-
-Contributors guide: ./CONTRIBUTING.md
+Thanks for sending a pull request!
+- if this is your first time, please ensure you have read through our contributor guide: https://github.com/Seneca-CDOT/telescope/blob/master/docs/CONTRIBUTING.md
 -->
+
+## Issue This PR Addresses
+
+<!--
+1. Automatically close the issue when this PR is merged
+    USAGE: Fixes #<issue number>
+2. If your PR addresses an issue but does not close it
+    USAGE: #<issue number> <reason>(i.e. This issue was worked on by @user and myself and his PR should close the issue.)
+-->
+
+## Type of Change
+
+<!-- bug fix, feature, documentation, UI, etc. -->
+
+- [ ] **Bugfix**: Change which fixes an issue
+- [ ] **New Feature**: Change which adds functionality
+- [ ] **Documentation Update**: Change which improves documentation
+- [ ] **UI**: Change which improves UI
+
+## Description
+
+<!-- Please add a detailed description of what this PR does and why it is needed -->
+
+## Steps to test the PR
+
+<!-- Please add steps to build the changes in your PR locally so that peers can test your PR
+    Example:
+    - `npm install`
+    - Go to '...'
+    - Click on '....'
+    - Scroll down to '....'
+    - See error
+
+    Please remember, the more clear you are, the faster your PR will be reviewed and merged.
+ -->
 
 ## Checklist
-<!--
-Remove items that do not apply. For completed items, change [ ] to [x].
--->
 
-- [ ] Keep pull requests small so they can be easily reviewed.
-- [ ] Update the documentation.
-- [ ] Categorize the PR by setting a good title and adding one of the labels:
-      `bug`, `enhancement`, `documentation`, `change`, `breaking`, `dependency`
-      as they show up in the changelog
-- [ ] Link this PR to related issues.
+<!-- Before submitting a PR, address each item -->
 
-<!--
-NOTE: these things are not required to open a PR and can be done afterwards,
-while the PR is open.
--->
+- [ ] **Quality**: This PR builds and passes our npm test and works locally
+- [ ] **Tests**: This PR includes thorough tests or an explanation of why it does not
+- [ ] **Screenshots**: This PR includes screenshots or GIFs of the changes made or an explanation of why it does not (if applicable)
+- [ ] **Documentation**: This PR includes updated/added documentation to user exposed functionality or configuration variables are added/changed or an explanation of why it does not(if applicable)
