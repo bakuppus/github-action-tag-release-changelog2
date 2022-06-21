@@ -81,7 +81,7 @@ services:
       - SSO_IDP_PUBLIC_KEY_CERT
       - SAML_ENTITY_ID
       - ADMINISTRATORS
-      - ALLOWED_APP_ORIGINS
+      - ALLOWED_APP_ORIGINfcdeS
       - JWT_EXPIRES_IN
       # Supabase config
       - SERVICE_ROLE_KEY
