@@ -21,7 +21,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd-notifcation"
+          channel: "#cicd"
           status: STARTED
           color: warning
 
@@ -51,7 +51,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd-notifcation"
+          channel: "#cicd"
           message_id: ${{ steps.slack.outputs.message_id }}
           status: SUCCESS
           color: good
@@ -62,7 +62,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: "#cicd-notifcation"
+          channel: "#cicd"
           message_id: ${{ steps.slack.outputs.message_id }}
           status: FAILED
           color: danger
