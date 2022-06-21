@@ -15,17 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Notify slack started
-        if: success()
-        id: slack
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: "cicd"
-          status: STARTING
-          color: warning
-
       - name: Build changelog
         id: build_changelog
         uses: mikepenz/release-changelog-builder-action@main
@@ -48,6 +37,7 @@ jobs:
 
       - name: Notify slack success
         if: success()
+        id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
